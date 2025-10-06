@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello John App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+      body {
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <script type="text/babel">
+      const SUPABASE_URL = "https://ydmumpaarisrlnpybhcp.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkbXVtcGFhcmlzcmxucHliaGNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNjc5MjEsImV4cCI6MjA3Mjc0MzkyMX0.RFsW2XO3VxR-KoPjGLXfhLZs9gCoz--vGdlFI5hq6sQ";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      function App() {
+        const [message, setMessage] = React.useState(null);
+        const [loading, setLoading] = React.useState(true);
+        const [error, setError] = React.useState(null);
+
+        React.useEffect(() => {
+          async function fetchMessage() {
+            setLoading(true);
+            setError(null);
+            const { data, error } = await supabase
+              .from("message")
+              .select("message")
+              .limit(2);
+            if (error) {
+              setError("Failed to fetch message.");
+              setLoading(false);
+              return;
+            }
+            if (data && data.length === 1) {
+              setMessage(data[0].message);
+            } else if (data && data.length > 1) {
+              setMessage(data.map(row => row.message));
+            } else {
+              setMessage(null);
+            }
+            setLoading(false);
+          }
+          fetchMessage();
+        }, []);
+
+        return (
+          <div className="container vh-100 d-flex justify-content-center align-items-center">
+            <div className="text-center animate__animated animate__fadeInDown w-100">
+              {loading ? (
+                <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 120 }}>
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="alert alert-danger" role="alert">{error}</div>
+              ) : Array.isArray(message) ? (
+                <div>
+                  <h1 className="display-6 fw-bold mb-3">Messages</h1>
+                  <div className="table-responsive">
+                    <table className="table table-bordered table-striped">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {message.map((msg, idx) => (
+                          <tr key={idx}>
+                            <td>{msg || <span className="text-muted">(No message)</span>}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="display-4 fw-bold mb-3">{message || "No message found."}</h1>
+                  <p className="lead">Welcome to your simple React app.</p>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      }
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
